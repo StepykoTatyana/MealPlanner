@@ -1,4 +1,4 @@
-package mealplanner;
+package org.example;
 
 public class Meal {
     String category;

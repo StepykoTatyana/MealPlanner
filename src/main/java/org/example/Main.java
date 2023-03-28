@@ -1,5 +1,37 @@
-package org.example;public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello world!");
+package org.example;
+import java.sql.*;
+import java.util.Scanner;
+
+public class Main {
+
+
+    public static void main(String[] args) throws SQLException, ClassNotFoundException {
+
+        Scanner scanner = new Scanner(System.in);
+        MealService mealService = new MealService();
+        loop:
+        while (true) {
+            System.out.println("What would you like to do (add, show, exit)?");
+            String action = scanner.nextLine().trim();
+            System.out.println("14");
+            switch (action) {
+                case "add" -> {
+                    mealService.add();
+                    System.out.println();
+                }
+                case "show" -> {
+                    mealService.show();
+                    System.out.println();
+                }
+
+                case "exit" -> {
+                    System.out.println("Bye!");
+                    break loop;
+                }
+            }
+        }
+
     }
+
+
 }
