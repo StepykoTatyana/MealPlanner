@@ -1,115 +1,70 @@
 package org.example;
 
-
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.*;
+
 
 public class MealService {
     static Scanner scanner = new Scanner(System.in);
-    static ArrayList<Meal> mealArrayList = new ArrayList<>();
+    static List<Meal> mealArrayList = new LinkedList<>();
+    static List<Meal> mealArrayListFromBd = new LinkedList<>();
+    static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/meals_db";
+    static final String USER = "postgres";
+    static final String PASS = "1111";
 
     static Integer id = 0;
+    static Integer ingredientId = 0;
 
+    static Connection connection;
 
-    void show() throws SQLException, SQLException, ClassNotFoundException {
-        String url = "jdbc:postgresql://127.0.0.1:5432/food_db";
-
-        Properties props = new Properties();
-        props.setProperty("user", "postgres");
-        props.setProperty("password", "1111");
-        props.setProperty("ssl", "true");
-        Connection conn = DriverManager.getConnection(url, props);
-        Class.forName("org.postgresql.Driver");
-       // String url = "jdbc:postgresql://localhost/food_db?user=postgres&password=1111&ssl=true";
-//        Connection conn = DriverManager.getConnection(url);
-
-        Connection connection = DriverManager.getConnection(url);
-
-        Statement statement = connection.createStatement();
-        connection.setAutoCommit(true);
-        ResultSet rs = statement.executeQuery("select * from food");
-        if (mealArrayList.size() == 0) {
-            System.out.println("No meals saved. Add a meal first.");
-        } else {
-            while (rs.next()) {
-                String[] in = rs.getString("ingredients").split(",");
-                System.out.println("Category: " + rs.getString("category"));
-                System.out.println("Name: " + rs.getString("name"));
-                System.out.println("Ingredients: ");
-                Arrays.stream(in).toList().forEach(System.out::println);
-                System.out.println();
-            }
-//            for (Meal m : mealArrayList) {
-//                System.out.println("Category: " + m.getCategory());
-//                System.out.println("Name: " + m.getName());
-//                System.out.println("Ingredients: ");
-//                Arrays.stream(m.getIngredients()).toList().forEach(System.out::println);
-//                System.out.println();
-//
-//            }
-        }
-        statement.close();
-        connection.close();
-    }
-
-    public void add() throws SQLException, ClassNotFoundException {
-        Class.forName("org.postgresql.Driver");
-        System.out.println("1");
-        String url = "jdbc:postgresql://127.0.0.1:5432/food_db?user=postgres&password=1111&ssl=true";
-//        Connection conn = DriverManager.getConnection(url);
-
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            System.out.println("PostgreSQL JDBC Driver is not found. Include it in your library path ");
-            e.printStackTrace();
-            return;
-        }
-
-        System.out.println("PostgreSQL JDBC Driver successfully connected");
-        Connection connection = null;
-
+    static {
         try {
             connection = DriverManager
-                    .getConnection(url);
-
-        } catch (SQLException e) {
-            System.out.println("Connection Failed");
-            e.printStackTrace();
-            return;
+                    .getConnection(DB_URL, USER, PASS);
+            connection.setAutoCommit(true);
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
         }
+    }
 
-        if (connection != null) {
-            System.out.println("You successfully connected to database now");
+    void show() {
+        if (mealArrayListFromBd.size() == 0) {
+            System.out.println("No meals saved. Add a meal first.");
         } else {
-            System.out.println("Failed to make connection to database");
+            for (Meal m : mealArrayListFromBd) {
+                System.out.println("Category: " + m.getCategory());
+                System.out.println("Name: " + m.getName());
+                System.out.println("Ingredients: ");
+                Arrays.stream(m.getIngredients()).toList().forEach(System.out::println);
+                System.out.println();
+            }
         }
-        System.out.println("2");
-        assert connection != null;
+
+    }
+
+    public void add() throws SQLException {
         Statement statement = connection.createStatement();
-        System.out.println("3");
-        connection.setAutoCommit(true);
         System.out.println("Which meal do you want to add (breakfast, lunch, dinner)?");
         String choice = scanner.nextLine().trim();
         String[] ingredients = new String[0];
         String meal = null;
-        if (mealArrayList.size() == 0) {
-            statement.executeUpdate("create table food (" +
-                    "id integer," +
-                    "category varchar(1024) NOT NULL" +
-                    "name varchar(1024) NOT NULL" +
-                    "ingredients varchar(1024) NOT NULL" +
-                    ")");
-            statement.close();
-            connection.close();
+        if (mealArrayListFromBd.size() == 0) {
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS meals " +
+                    "(" +
+                    "    category character varying(200) NOT NULL," +
+                    "    meal character varying(200) NOT NULL," +
+                    "    meal_id serial PRIMARY KEY" +
+                    ");");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS ingredients " +
+                    "(" +
+                    "    ingredient character varying(200) NOT NULL," +
+                    "    ingredient_id serial PRIMARY KEY," +
+                    "    meal_id bigint NOT NULL" +
+                    ");");
+
         }
         while (ingredients.length == 0) {
-            System.out.println("1");
             switch (choice) {
-
                 case "breakfast", "lunch", "dinner" -> {
                     System.out.println("Input the meal's name:");
                     meal = scanner.nextLine().trim();
@@ -137,15 +92,53 @@ public class MealService {
         Meal mealObj = new Meal(choice, meal, ingredients);
         mealArrayList.add(mealObj);
         id++;
-        String ingredientsString = String.join(",", ingredients);
-        String str = String.format("insert into food (id, category, name, ingredients) values (%d, '%s', '%s', '%s')",
-                id, choice, meal, ingredientsString);
-        statement.executeUpdate(str);
-
-        connection.close();
+        statement.executeUpdate(
+                String.format("insert into meals(category, meal)" +
+                                " values('%s', '%s');",
+                        choice, meal));
+        Statement statement4 = connection.createStatement();
+        ResultSet rsMealsId = statement4.executeQuery("select meal_id from meals order by meal_id desc LIMIT 1;");
+        int lastMealId = 0;
+        if (rsMealsId.next()) {
+            lastMealId = Integer.parseInt(rsMealsId.getString("meal_id"));
+        }
+        for (String ingredient : ingredients) {
+            ingredientId++;
+            statement.executeUpdate(
+                    String.format("insert into ingredients(ingredient, meal_id)" +
+                                    " values('%s', '%d');",
+                            ingredient, lastMealId));
+        }
         System.out.println("The meal has been added!");
-
-
+        getDataFromBD();
+        statement.close();
+        statement4.close();
+        connection.close();
     }
 
+
+   public void getDataFromBD() throws SQLException {
+        Statement statement2 = connection.createStatement();
+        Statement statement3 = connection.createStatement();
+        ResultSet rsMeals = statement2.executeQuery("select * from meals;");
+        mealArrayListFromBd = new ArrayList<>();
+
+        while (rsMeals.next()) {
+            Meal meal1 = new Meal();
+            meal1.setCategory(rsMeals.getString("category"));
+            meal1.setName(rsMeals.getString("meal"));
+            int meal_id = rsMeals.getInt("meal_id");
+            ResultSet rsIngredients = statement3.executeQuery(String.format("select * from ingredients where meal_id=%d;", meal_id));
+            ArrayList<String> strings = new ArrayList<>();
+            while (rsIngredients.next()) {
+                strings.add(rsIngredients.getString("ingredient"));
+            }
+            meal1.setIngredients(strings.toArray(String[]::new));
+            mealArrayListFromBd.add(meal1);
+        }
+
+        statement2.close();
+        statement3.close();
+
+    }
 }

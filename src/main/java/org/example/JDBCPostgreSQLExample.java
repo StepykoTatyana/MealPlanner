@@ -1,8 +1,5 @@
 package org.example;
 
-
-
-//STEP 1. Import required packages
 import java.sql.DriverManager;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -10,9 +7,9 @@ import java.sql.SQLException;
 public class JDBCPostgreSQLExample {
 
     //  Database credentials
-    static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/vertex";
-    static final String USER = "username";
-    static final String PASS = "password";
+    static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/food_db";
+    static final String USER = "postgres";
+    static final String PASS = "1111";
 
     public static void main(String[] argv) {
 
@@ -27,7 +24,7 @@ public class JDBCPostgreSQLExample {
         }
 
         System.out.println("PostgreSQL JDBC Driver successfully connected");
-        Connection connection = null;
+        Connection connection;
 
         try {
             connection = DriverManager
@@ -35,6 +32,7 @@ public class JDBCPostgreSQLExample {
 
         } catch (SQLException e) {
             System.out.println("Connection Failed");
+            System.out.println(e.getMessage());
             e.printStackTrace();
             return;
         }

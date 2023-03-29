@@ -9,11 +9,11 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
         MealService mealService = new MealService();
+        mealService.getDataFromBD();
         loop:
         while (true) {
             System.out.println("What would you like to do (add, show, exit)?");
             String action = scanner.nextLine().trim();
-            System.out.println("14");
             switch (action) {
                 case "add" -> {
                     mealService.add();

@@ -1,9 +1,15 @@
 package org.example;
 
+import java.sql.Array;
+
 public class Meal {
     String category;
     String name;
     String[] ingredients;
+
+    public Meal() {
+
+    }
 
     public String getName() {
         return name;
