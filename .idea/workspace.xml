@@ -5,14 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3bd8e215-8774-4c44-bbf5-fed9139e75d9" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/postgresql-42.6.0.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/sayan.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/JDBCPostgreSQLExample.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/JDBCPostgreSQLExample.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Meal.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Meal.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/MealService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/MealService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,8 +60,10 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ASKED_ADD_EXTERNAL_FILES": "true",
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "last_opened_file_path": "C:/IdeaProjects/MealPlanner",
     "project.structure.last.edited": "SDKs",
     "project.structure.proportion": "0.15",
@@ -129,12 +126,20 @@
       <option name="project" value="LOCAL" />
       <updated>1680017394567</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="add postgresql to project for create table and save data to it">
+      <created>1680114456861</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1680114456861</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="11" />
-    <option name="LAST_COMMIT_MESSAGE" value="11" />
+    <MESSAGE value="add postgresql to project for create table and save data to it" />
+    <option name="LAST_COMMIT_MESSAGE" value="add postgresql to project for create table and save data to it" />
   </component>
 </project>

@@ -1,15 +1,18 @@
 package org.example;
-import java.sql.*;
+
+import java.sql.SQLException;
 import java.util.Scanner;
 
 public class Main {
 
 
-    public static void main(String[] args) throws SQLException, ClassNotFoundException {
+    public static void main(String[] args) throws SQLException {
 
         Scanner scanner = new Scanner(System.in);
         MealService mealService = new MealService();
+        mealService.createTablesBD();
         mealService.getDataFromBD();
+
         loop:
         while (true) {
             System.out.println("What would you like to do (add, show, exit)?");

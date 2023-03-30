@@ -17,15 +17,6 @@ public class MealService {
 
     static Connection connection;
 
-    static {
-        try {
-            connection = DriverManager
-                    .getConnection(DB_URL, USER, PASS);
-            connection.setAutoCommit(true);
-        } catch (SQLException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
 
     void show() {
         if (mealArrayListFromBd.size() == 0) {
@@ -43,26 +34,18 @@ public class MealService {
     }
 
     public void add() throws SQLException {
+        try {
+            connection = DriverManager
+                    .getConnection(DB_URL, USER, PASS);
+            connection.setAutoCommit(true);
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        }
         Statement statement = connection.createStatement();
         System.out.println("Which meal do you want to add (breakfast, lunch, dinner)?");
         String choice = scanner.nextLine().trim();
         String[] ingredients = new String[0];
         String meal = null;
-        if (mealArrayListFromBd.size() == 0) {
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS meals " +
-                    "(" +
-                    "    category character varying(200) NOT NULL," +
-                    "    meal character varying(200) NOT NULL," +
-                    "    meal_id serial PRIMARY KEY" +
-                    ");");
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS ingredients " +
-                    "(" +
-                    "    ingredient character varying(200) NOT NULL," +
-                    "    ingredient_id serial PRIMARY KEY," +
-                    "    meal_id bigint NOT NULL" +
-                    ");");
-
-        }
         while (ingredients.length == 0) {
             switch (choice) {
                 case "breakfast", "lunch", "dinner" -> {
@@ -88,26 +71,27 @@ public class MealService {
                 }
             }
         }
-
-        Meal mealObj = new Meal(choice, meal, ingredients);
-        mealArrayList.add(mealObj);
-        id++;
-        statement.executeUpdate(
-                String.format("insert into meals(category, meal)" +
-                                " values('%s', '%s');",
-                        choice, meal));
         Statement statement4 = connection.createStatement();
         ResultSet rsMealsId = statement4.executeQuery("select meal_id from meals order by meal_id desc LIMIT 1;");
         int lastMealId = 0;
         if (rsMealsId.next()) {
             lastMealId = Integer.parseInt(rsMealsId.getString("meal_id"));
         }
+        Meal mealObj = new Meal(choice, meal, ingredients);
+        mealArrayList.add(mealObj);
+        id++;
+        statement.executeUpdate(
+                String.format("insert into meals(category, meal, meal_id)" +
+                                " values('%s', '%s', '%d');",
+                        choice, meal, lastMealId + 1));
+
+
         for (String ingredient : ingredients) {
             ingredientId++;
             statement.executeUpdate(
-                    String.format("insert into ingredients(ingredient, meal_id)" +
-                                    " values('%s', '%d');",
-                            ingredient, lastMealId));
+                    String.format("insert into ingredients(ingredient, ingredient_id, meal_id)" +
+                                    " values('%s', '%d', '%d');",
+                            ingredient, ingredientId, lastMealId + 1));
         }
         System.out.println("The meal has been added!");
         getDataFromBD();
@@ -117,28 +101,57 @@ public class MealService {
     }
 
 
-   public void getDataFromBD() throws SQLException {
-        Statement statement2 = connection.createStatement();
-        Statement statement3 = connection.createStatement();
-        ResultSet rsMeals = statement2.executeQuery("select * from meals;");
-        mealArrayListFromBd = new ArrayList<>();
+    public void getDataFromBD() {
+        try {
+            Statement statement2 = connection.createStatement();
+            Statement statement3 = connection.createStatement();
+            ResultSet rsMeals = statement2.executeQuery("select * from meals;");
+            mealArrayListFromBd = new ArrayList<>();
 
-        while (rsMeals.next()) {
-            Meal meal1 = new Meal();
-            meal1.setCategory(rsMeals.getString("category"));
-            meal1.setName(rsMeals.getString("meal"));
-            int meal_id = rsMeals.getInt("meal_id");
-            ResultSet rsIngredients = statement3.executeQuery(String.format("select * from ingredients where meal_id=%d;", meal_id));
-            ArrayList<String> strings = new ArrayList<>();
-            while (rsIngredients.next()) {
-                strings.add(rsIngredients.getString("ingredient"));
+            while (rsMeals.next()) {
+                Meal meal1 = new Meal();
+                meal1.setCategory(rsMeals.getString("category"));
+                meal1.setName(rsMeals.getString("meal"));
+                int meal_id = rsMeals.getInt("meal_id");
+                ResultSet rsIngredients = statement3.executeQuery(String.format("select * from ingredients where meal_id=%d;", meal_id));
+                ArrayList<String> strings = new ArrayList<>();
+                while (rsIngredients.next()) {
+                    strings.add(rsIngredients.getString("ingredient"));
+                }
+                meal1.setIngredients(strings.toArray(String[]::new));
+                mealArrayListFromBd.add(meal1);
             }
-            meal1.setIngredients(strings.toArray(String[]::new));
-            mealArrayListFromBd.add(meal1);
+
+            statement2.close();
+            statement3.close();
+        } catch (Exception ignored) {
         }
+    }
 
-        statement2.close();
-        statement3.close();
+    public void createTablesBD() throws SQLException {
+        try {
+            connection = DriverManager
+                    .getConnection(DB_URL, USER, PASS);
+            connection.setAutoCommit(true);
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        }
+        Statement statement = connection.createStatement();
+        if (mealArrayListFromBd.size() == 0) {
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS meals " +
+                    "(" +
+                    "    category character varying(200) NOT NULL," +
+                    "    meal character varying(200) NOT NULL," +
+                    "    meal_id integer PRIMARY KEY" +
+                    ");");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS ingredients " +
+                    "(" +
+                    "    ingredient character varying(200) NOT NULL," +
+                    "    ingredient_id integer PRIMARY KEY," +
+                    "    meal_id integer NOT NULL" +
+                    ");");
 
+        }
+        statement.close();
     }
 }
