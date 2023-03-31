@@ -15,7 +15,7 @@ public class Main {
 
         loop:
         while (true) {
-            System.out.println("What would you like to do (add, show, exit)?");
+            System.out.println("What would you like to do (add, show, plan, exit)?");
             String action = scanner.nextLine().trim();
             switch (action) {
                 case "add" -> {
@@ -29,7 +29,13 @@ public class Main {
 
                 case "exit" -> {
                     System.out.println("Bye!");
+                    MealService.connection.close();
                     break loop;
+                }
+                case "plan" -> {
+                    mealService.plan();
+                    mealService.printPlanOfTheWeek();
+                    System.out.println();
                 }
             }
         }
