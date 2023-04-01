@@ -1,22 +1,19 @@
 package org.example;
 
+import java.io.*;
 import java.sql.*;
 import java.util.*;
-import java.util.stream.Collectors;
-
 
 public class MealService {
     static Scanner scanner = new Scanner(System.in);
     static List<Meal> mealArrayList = new LinkedList<>();
     static List<Meal> mealArrayListFromBd = new LinkedList<>();
     static List<DayOfTheWeek> daysOfTheWeekArray = new LinkedList<>();
+
+    static Map<String, Integer> shoppingList = new LinkedHashMap<>();
     static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/meals_db";
     static final String USER = "postgres";
     static final String PASS = "1111";
-//
-//    static Integer id = 0;
-//    static Integer ingredientId = 0;
-
     static Connection connection;
 
     static {
@@ -182,7 +179,8 @@ public class MealService {
     }
 
     public void plan() throws SQLException {
-        String[] daysOfThwWeek = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
+        String[] daysOfThwWeek = {"Monday", "Tuesday"};
+        //String[] daysOfThwWeek = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
         String[] categoryArray = {"breakfast", "lunch", "dinner"};
         for (String dayOfTheWeek : daysOfThwWeek) {
             DayOfTheWeek dayOfTheWeek1 = new DayOfTheWeek();
@@ -196,6 +194,7 @@ public class MealService {
             daysOfTheWeekArray.add(dayOfTheWeek1);
 
         }
+        countIngredients();
 
     }
 
@@ -236,13 +235,111 @@ public class MealService {
 
     }
 
-    public void printPlanOfTheWeek() {
-        for (DayOfTheWeek dayOfTheWeek : daysOfTheWeekArray) {
-            System.out.println(dayOfTheWeek.getDayOfTheWeek());
-            System.out.println("Breakfast: " + dayOfTheWeek.getBreakfastMeal());
-            System.out.println("Lunch: " + dayOfTheWeek.getLunchMeal());
-            System.out.println("Dinner: " + dayOfTheWeek.getDinnerMeal());
-            System.out.println();
+    public void printPlanOfTheWeek() throws IOException {
+        File file = new File(System.getProperty("user.dir") + File.separator +
+                "src" + File.separator + "main" + File.separator + "java" + File.separator +
+                "org" + File.separator +
+                "example" + File.separator + "plan.txt");
+        try (FileWriter fileWriter = new FileWriter(file)) {
+            for (DayOfTheWeek dayOfTheWeek : daysOfTheWeekArray) {
+
+                System.out.println(dayOfTheWeek.getDayOfTheWeek());
+                System.out.println("Breakfast: " + dayOfTheWeek.getBreakfastMeal());
+                System.out.println("Lunch: " + dayOfTheWeek.getLunchMeal());
+                System.out.println("Dinner: " + dayOfTheWeek.getDinnerMeal());
+                System.out.println();
+
+                fileWriter.write(dayOfTheWeek.getDayOfTheWeek() + "\n");
+                fileWriter.write(dayOfTheWeek.getBreakfastMeal() + "\n");
+                fileWriter.write(dayOfTheWeek.getLunchMeal() + "\n");
+                fileWriter.write(dayOfTheWeek.getDinnerMeal() + "\n");
+            }
         }
+    }
+
+    public void save() {
+        System.out.println(shoppingList);
+        if (daysOfTheWeekArray.size() != 0) {
+            System.out.println("Input a filename:");
+            String fileName = scanner.nextLine();
+            File file = new File(System.getProperty("user.dir") + File.separator +
+                    "src" + File.separator + "main" + File.separator + "java" + File.separator +
+                    "org" + File.separator +
+                    "example" + File.separator + fileName);
+
+            try (FileWriter fileWriter = new FileWriter(file)) {
+                for (Map.Entry<String, Integer> i : shoppingList.entrySet()) {
+                    if (i.getValue() == 1) {
+                        fileWriter.write(i.getKey() + "\n");
+                    } else {
+                        fileWriter.write(i.getKey() + " x" + i.getValue() + "\n");
+                    }
+                }
+                System.out.println("Saved!");
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
+
+
+        } else {
+            System.out.println("Unable to save. Plan your meals first.");
+        }
+
+    }
+
+    public void countIngredients() throws SQLException {
+        shoppingList = new LinkedHashMap<>();
+        for (DayOfTheWeek dayOfTheWeek : daysOfTheWeekArray) {
+
+            String[] strings = {dayOfTheWeek.getBreakfastMeal(),
+                    dayOfTheWeek.getLunchMeal(), dayOfTheWeek.getDinnerMeal()};
+//            System.out.println(Arrays.toString(strings));
+            for (String s : strings) {
+                Statement statement4 = connection.createStatement();
+                ResultSet rsIngredients = statement4.executeQuery(
+                        String.format("select ingredient from meals as m" +
+                                " inner join ingredients as i on i.meal_id=m.meal_id" +
+                                " where m.meal='%s';", s));
+                while (rsIngredients.next()) {
+                    String ingredient = rsIngredients.getString("ingredient");
+                    System.out.println(ingredient);
+                    System.out.println(shoppingList.containsKey(ingredient));
+                    if (shoppingList.containsKey(ingredient)) {
+                        shoppingList.put(ingredient, shoppingList.get(ingredient) + 1);
+                    } else {
+                        shoppingList.put(ingredient, 1);
+                    }
+                }
+                statement4.close();
+            }
+
+        }
+//        System.out.println(shoppingList);
+    }
+
+
+    public void downloadPlan() {
+        try {
+            File file = new File(System.getProperty("user.dir") + File.separator +
+                    "src" + File.separator + "main" + File.separator + "java" + File.separator +
+                    "org" + File.separator +
+                    "example" + File.separator + "plan.txt");
+            try (Scanner scanner = new Scanner(file)) {
+                while (scanner.hasNext()) {
+                    DayOfTheWeek dayOfTheWeek = new DayOfTheWeek();
+                    dayOfTheWeek.setDayOfTheWeek(scanner.nextLine());
+                    dayOfTheWeek.setBreakfastMeal(scanner.nextLine());
+                    dayOfTheWeek.setLunchMeal(scanner.nextLine());
+                    dayOfTheWeek.setDinnerMeal(scanner.nextLine());
+                    daysOfTheWeekArray.add(dayOfTheWeek);
+                    countIngredients();
+                }
+            } catch (FileNotFoundException e) {
+                System.out.println("No file found: " + file);
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
     }
 }
